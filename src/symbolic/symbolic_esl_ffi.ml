@@ -802,10 +802,18 @@ module Make () = struct
       (Ok result, Thread.add_pc thread cond)
     in
     let str_match (s : Symbolic_value.value) =
-      Choice.with_mutable_thread @@ fun thread ->
-      let x = Smtml.Expr.symbol @@ Smtml.Symbol.make Ty_str @@ fresh_x () in
-      let cond = Smtml.Expr.binop Ty_str String_contains s x in
-      (Ok (Symbolic_value.mk_list [ x ]), Thread.add_pc thread cond)
+      Choice.bind
+        (Choice.branch
+           (Smtml.Expr.symbol (Smtml.Symbol.make Ty_bool (fresh_x ()))) )
+        (fun b ->
+          if not b then Choice.return (Ok (Symbolic_value.mk_symbol "undefined"))
+          else
+            Choice.with_mutable_thread @@ fun thread ->
+            let x =
+              Smtml.Expr.symbol @@ Smtml.Symbol.make Ty_str @@ fresh_x ()
+            in
+            let cond = Smtml.Expr.binop Ty_str String_contains s x in
+            (Ok (Symbolic_value.mk_list [ x ]), Thread.add_pc thread cond) )
     in
     let dirname () =
       let (dirname, _) = Fpath.split_base filename in

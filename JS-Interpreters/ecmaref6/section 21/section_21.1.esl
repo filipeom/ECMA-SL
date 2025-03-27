@@ -933,6 +933,8 @@ function StringPrototypeMatch(global, this, NewTarget, strict, args) {
   if (extern is_symbolic(O)) {
     /* Returns a list with a string that is contained insided S */
     matches := extern str_match(O);
+    if (matches == 'undefined)
+      return matches;
     i := 0;
     result := ArrayCreate(0.0, null);
     foreach (match_ : matches) {
